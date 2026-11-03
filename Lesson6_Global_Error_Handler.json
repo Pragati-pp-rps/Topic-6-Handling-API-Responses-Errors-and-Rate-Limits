@@ -1,0 +1,48 @@
+{
+  "name": "Lesson 6 - Global Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cf482fc9-2580-46ff-aa3b-f4ac898f9267",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const e=$input.first().json; return [{json:{capturedAt:new Date().toISOString(),executionId:e.execution?.id??'not available',workflowId:e.workflow?.id??'not available',workflowName:e.workflow?.name??'not available',failedNode:e.execution?.lastNodeExecuted??e.trigger?.error?.node?.name??'not available',errorMessage:e.execution?.error?.message??e.trigger?.error?.message??'not available',rawError:e}}];"
+      },
+      "id": "33fd5535-dc5a-4e87-8e57-e285d5a41a9b",
+      "name": "Capture Error Details",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Capture Error Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": []
+}

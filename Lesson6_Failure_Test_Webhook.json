@@ -1,0 +1,54 @@
+{
+  "name": "Lesson 6 - Failure Test Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "lesson6-failure-demo",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "44838d76-8d58-4c54-a9f3-65a8d765854e",
+      "name": "Webhook - Test Failure",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -300,
+        0
+      ],
+      "webhookId": "92f36087-47bb-4af5-a63c-af718ebedd89"
+    },
+    {
+      "parameters": {
+        "jsCode": "throw new Error('Lesson 6 intentional failure - verify Error Trigger workflow');"
+      },
+      "id": "f9f59ded-dd63-47e8-b2f3-f7ad9b8523e5",
+      "name": "Throw Deliberate Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Test Failure": {
+      "main": [
+        [
+          {
+            "node": "Throw Deliberate Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": []
+}

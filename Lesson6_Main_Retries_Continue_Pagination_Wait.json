@@ -1,0 +1,309 @@
+{
+  "name": "Lesson 6 - Retries Continue Pagination Wait",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1d557468-cb5a-4481-9592-28434e45d220",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -900,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{lesson:'Lesson 6',note:'Public API demo; no credentials needed',timestamp:new Date().toISOString()}}];"
+      },
+      "id": "d65d40c0-2ab4-409d-805f-7710681552d4",
+      "name": "Demo Setup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -680,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://httpstat.us/503",
+        "options": {}
+      },
+      "id": "6ae815ff-750d-4860-9ba6-ee2ad530c3b1",
+      "name": "Retry Demo - HTTP 503",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -440,
+        -280
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(i=>({json:{exercise:1,retryConfigured:true,maxAttempts:3,delayMs:1000,receivedError:!!i.json.error,response:i.json}}));"
+      },
+      "id": "91b3b037-cadd-4c1c-a9e2-c4423fd28c25",
+      "name": "Review Retry Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        -280
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://jsonplaceholder.typicode.com/invalid-endpoint-for-demo",
+        "options": {}
+      },
+      "id": "359b9709-cf1c-44f4-a7ef-1ad8f2118616",
+      "name": "Continue on Fail - HTTP 404",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -440,
+        -40
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(i=>({json:{exercise:2,workflowContinued:true,errorCaptured:!!i.json.error,result:i.json}}));"
+      },
+      "id": "2b9cf9b0-4b33-4b57-8590-6c02f1613ca9",
+      "name": "Review Continue on Fail",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [1,2,3].map(page=>({json:{page,limit:3}}));"
+      },
+      "id": "375959ae-dfcd-4929-b69e-653e625c314a",
+      "name": "Create Three Page Requests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -440,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "87ce7f54-8d95-4574-a562-98ad8d967b66",
+      "name": "Loop Pages (max 3)",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -180,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "738f0e2c-71de-457f-a0fd-0fc5a5c25c85",
+      "name": "Wait 1 Second",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        60,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://jsonplaceholder.typicode.com/posts",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "_page",
+              "value": "={{ $(\"Loop Pages (max 3)\").item.json.page }}"
+            },
+            {
+              "name": "_limit",
+              "value": "3"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "700726d0-5f36-46ea-8140-952c5866bad2",
+      "name": "Fetch Page - JSONPlaceholder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows=$input.all(); return [{json:{page:$('Loop Pages (max 3)').item.json.page,itemsReturned:rows.length,postIds:rows.map(x=>x.json.id)}}];"
+      },
+      "id": "7284dbd2-0569-4318-9e98-10f273a07b69",
+      "name": "Review Page Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{exercise:3,exercise4:'Wait node used between requests',completed:true,maximumPages:3,note:'Inspect loop execution for each page and its HTTP response.'}}];"
+      },
+      "id": "0d49d26c-4be4-476f-890f-4d28d1601d47",
+      "name": "Pagination Complete",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        100
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Demo Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo Setup": {
+      "main": [
+        [
+          {
+            "node": "Retry Demo - HTTP 503",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Continue on Fail - HTTP 404",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Three Page Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Demo - HTTP 503": {
+      "main": [
+        [
+          {
+            "node": "Review Retry Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Continue on Fail - HTTP 404": {
+      "main": [
+        [
+          {
+            "node": "Review Continue on Fail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Three Page Requests": {
+      "main": [
+        [
+          {
+            "node": "Loop Pages (max 3)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Pages (max 3)": {
+      "main": [
+        [
+          {
+            "node": "Pagination Complete",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 1 Second",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 1 Second": {
+      "main": [
+        [
+          {
+            "node": "Fetch Page - JSONPlaceholder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Page - JSONPlaceholder": {
+      "main": [
+        [
+          {
+            "node": "Review Page Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Review Page Response": {
+      "main": [
+        [
+          {
+            "node": "Loop Pages (max 3)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": []
+}
